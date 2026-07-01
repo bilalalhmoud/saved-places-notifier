@@ -22,3 +22,6 @@ Package.resolved
 *.dSYM.zip
 *.dSYM
 SavedPlacesNotifier-simulator.zip
+
+# Local CI watch logs
+watch.log
