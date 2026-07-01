@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nearby Saved — Google Maps Saved Places Proximity Notifier</title>
+<meta name="description" content="An iPhone app that notifies you when you're near any of your Google Maps saved places — scaling to thousands via a geohash spatial index. Private, on-device, battery-efficient." />
+<meta property="og:title" content="Nearby Saved — Saved Places Proximity Notifier" />
+<meta property="og:description" content="Get notified when you're near any of your Google Maps saved places. Thousands of places, no geofence limit, fully on-device." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%8D%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #121933;
+    --card: #161f3e;
+    --line: #26315a;
+    --text: #e8ecf6;
+    --muted: #9aa6c8;
+    --accent: #2680e6;
+    --accent-2: #26c281;
+    --radius: 16px;
+    --maxw: 1040px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, #1b2a55 0%, transparent 60%), var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+  header.nav {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(11,16,32,0.7);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-weight: 700; letter-spacing: .2px; display: flex; align-items: center; gap: 10px; }
+  .brand .dot { font-size: 22px; }
+  .nav a.pill {
+    border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px;
+    color: var(--text); font-size: 14px;
+  }
+  .nav a.pill:hover { border-color: var(--accent); text-decoration: none; }
+
+  .hero { padding: 72px 0 40px; }
+  .hero h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.1; margin: 0 0 16px; }
+  .hero .grad {
+    background: linear-gradient(90deg, #6ab7ff, #26c281);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p.lead { font-size: clamp(17px, 2.4vw, 20px); color: var(--muted); max-width: 660px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 15px;
+    border: 1px solid transparent; cursor: pointer;
+  }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #1f6fd0; text-decoration: none; }
+  .btn.ghost { border-color: var(--line); color: var(--text); }
+  .btn.ghost:hover { border-color: var(--accent); text-decoration: none; }
+  .badges { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .badges img { height: 22px; }
+
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  section h2 { font-size: clamp(22px, 3.4vw, 30px); margin: 0 0 6px; }
+  section p.sub { color: var(--muted); margin: 0 0 26px; }
+
+  .grid { display: grid; gap: 16px; }
+  .cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card {
+    background: linear-gradient(180deg, var(--card), var(--bg-soft));
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card h3 { margin: 6px 0 8px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .card .ico { font-size: 24px; }
+
+  .pipeline {
+    background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; overflow-x: auto;
+  }
+  .pipeline pre {
+    margin: 0; color: #cfe0ff; font-size: 13.5px; line-height: 1.7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+
+  .note {
+    background: rgba(38,128,230,0.09); border: 1px solid #2b4a86;
+    border-radius: 12px; padding: 14px 16px; color: #cbd8f4; font-size: 14.5px;
+  }
+  .note strong { color: #fff; }
+
+  code.inline {
+    background: #0d1430; border: 1px solid var(--line); border-radius: 6px;
+    padding: 2px 7px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px;
+  }
+  pre.block {
+    background: #0d1430; border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; overflow-x: auto; font-size: 13.5px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; color: #cfe0ff;
+  }
+
+  ul.clean { list-style: none; padding: 0; margin: 0; }
+  ul.clean li { padding: 7px 0; border-bottom: 1px dashed var(--line); color: var(--muted); }
+  ul.clean li::before { content: "✓ "; color: var(--accent-2); font-weight: 700; }
+
+  footer { padding: 40px 0 60px; color: var(--muted); border-top: 1px solid var(--line); }
+  .foot-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand"><span class="dot">📍</span> Nearby Saved</div>
+    <nav style="display:flex; gap:10px; align-items:center;">
+      <a class="pill" href="#how">How it works</a>
+      <a class="pill" href="#download">Download</a>
+      <a class="pill" href="https://github.com/bilalalhmoud/saved-places-notifier">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="hero" style="border-top:none;">
+      <h1>Get notified when you're near <span class="grad">any place you saved</span> in Google Maps.</h1>
+      <p class="lead">
+        Google Maps lets you save places — but never tells you when you walk past one.
+        <strong>Nearby Saved</strong> does, and it scales to <strong>thousands</strong> of saved places by using a
+        geohash spatial index instead of iOS's limited geofences. Private, on-device, and battery-efficient.
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="#download">⬇︎ Download the build</a>
+        <a class="btn ghost" href="https://github.com/bilalalhmoud/saved-places-notifier">View source on GitHub</a>
+      </div>
+      <div class="badges">
+        <img alt="CI status" src="https://github.com/bilalalhmoud/saved-places-notifier/actions/workflows/ci.yml/badge.svg" />
+        <img alt="Swift 5.9" src="https://img.shields.io/badge/Swift-5.9-orange" />
+        <img alt="iOS 17+" src="https://img.shields.io/badge/iOS-17%2B-black" />
+        <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-blue" />
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>What it does</h2>
+      <p class="sub">Everything runs locally on your iPhone. Your location never leaves the device.</p>
+      <div class="grid cards">
+        <div class="card"><div class="ico">🧭</div><h3>Proximity alerts</h3><p>Notifies you when you enter the radius of a saved place — 250 m to 1 km, your choice.</p></div>
+        <div class="card"><div class="ico">🗂️</div><h3>Thousands of places</h3><p>A geohash spatial index keeps nearby searches under 100 ms even with 10,000+ places.</p></div>
+        <div class="card"><div class="ico">🔋</div><h3>Battery-friendly</h3><p>Significant-change + visit monitoring; accuracy rises only when a place is close.</p></div>
+        <div class="card"><div class="ico">🚗</div><h3>Adaptive radius</h3><p>Wider alerts when driving, tighter when walking — auto-detected from your speed.</p></div>
+        <div class="card"><div class="ico">🔕</div><h3>Smart de-duplication</h3><p>Alerts on entry only; re-notifies after you leave and return, with a cooldown.</p></div>
+        <div class="card"><div class="ico">📦</div><h3>Batching</h3><p>“You have 5 saved places nearby” instead of five separate buzzes.</p></div>
+        <div class="card"><div class="ico">🏷️</div><h3>Category filters</h3><p>Enable coffee & restaurants, mute hotels & museums — perfect for travelling.</p></div>
+        <div class="card"><div class="ico">🔒</div><h3>Private by design</h3><p>On-device SwiftData storage. No account, no cloud, offline capable.</p></div>
+      </div>
+    </section>
+
+    <section id="how">
+      <h2>How it works</h2>
+      <p class="sub">Instead of one geofence per place (iOS caps that at ~20), it queries a spatial index.</p>
+      <div class="pipeline">
+<pre>
+   Import Google Takeout saved places
+                 │
+        Build geohash spatial index
+                 │
+   Significant location change / visit
+                 │
+   Query index → ~9–25 geohash cells only
+                 │
+   Precise Haversine on the few candidates
+                 │
+   Filter (category · transport · time · cooldown)
+                 │
+        Local notification  →  record to prevent duplicates
+</pre>
+      </div>
+    </section>
+
+    <section id="download">
+      <h2>Download</h2>
+      <p class="sub">The build is compiled automatically on a macOS runner by GitHub Actions.</p>
+      <div class="split">
+        <div class="card">
+          <h3>📲 Compiled app (iOS Simulator)</h3>
+          <p style="margin-bottom:14px;">A ready-to-run simulator build of the app, produced by CI.</p>
+          <a class="btn primary" href="https://github.com/bilalalhmoud/saved-places-notifier/releases/latest">⬇︎ Get the latest release</a>
+          <p style="margin-top:16px;">Run it with:</p>
+          <pre class="block">unzip SavedPlacesNotifier-simulator.zip
+xcrun simctl boot "iPhone 16"
+xcrun simctl install booted SavedPlacesNotifier.app
+xcrun simctl launch booted com.bilalalhmoud.savedplacesnotifier</pre>
+        </div>
+        <div class="card">
+          <h3>🛠️ Build for your iPhone</h3>
+          <p style="margin-bottom:14px;">To install on a real device you sign it with your own Apple ID in Xcode (an Apple requirement — unsigned builds can't run on hardware).</p>
+          <pre class="block">git clone https://github.com/bilalalhmoud/saved-places-notifier
+cd saved-places-notifier
+brew install xcodegen
+xcodegen generate
+open SavedPlacesNotifier.xcodeproj
+# Select your team, pick your iPhone, press ▶</pre>
+        </div>
+      </div>
+      <p style="margin-top:18px;" class="note">
+        <strong>Why no “install on iPhone” button?</strong> iOS apps can only be installed via the App Store,
+        TestFlight, or a signed build from Xcode. A native app cannot run inside a web browser, so this page
+        offers the CI-compiled build and one-command instructions to run or sign it yourself.
+      </p>
+    </section>
+
+    <section id="import">
+      <h2>Import your places</h2>
+      <p class="sub">From a Google Takeout export.</p>
+      <ul class="clean">
+        <li>Open <a href="https://takeout.google.com/">Google Takeout</a> → deselect all → choose <strong>Saved</strong> (and/or Maps “your places”).</li>
+        <li>Download and <strong>unzip</strong> the archive.</li>
+        <li>In the app: <strong>Home ▸ Import</strong> and pick the <code class="inline">.geojson</code> / <code class="inline">.json</code> / <code class="inline">.csv</code> files. Each file name becomes a list/category.</li>
+      </ul>
+    </section>
+
+    <section id="stack">
+      <h2>Under the hood</h2>
+      <p class="sub">Correctness-critical logic lives in a pure Swift package, unit-tested in CI without a simulator.</p>
+      <div class="grid cards">
+        <div class="card"><h3>SwiftUI + SwiftData</h3><p>Modern declarative UI and on-device persistence.</p></div>
+        <div class="card"><h3>Core Location</h3><p>Significant-change &amp; visit monitoring for low-power background awareness.</p></div>
+        <div class="card"><h3>Geohash index</h3><p>Bucketed cells + neighbour grid for O(candidates) proximity search.</p></div>
+        <div class="card"><h3>Tested engine</h3><p>Haversine, importer, dedup &amp; cooldown covered by XCTest suites.</p></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div>Built with SwiftUI · MIT licensed · Private &amp; on-device</div>
+    <div><a href="https://github.com/bilalalhmoud/saved-places-notifier">github.com/bilalalhmoud/saved-places-notifier</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

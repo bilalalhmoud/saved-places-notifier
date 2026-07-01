@@ -25,3 +25,6 @@ SavedPlacesNotifier-simulator.zip
 
 # Local CI watch logs
 watch.log
+
+# Local downloads of CI artifacts
+artifact_dl/
