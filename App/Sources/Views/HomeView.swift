@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreLocation
 import UniformTypeIdentifiers
+import SavedPlacesCore
 
 struct HomeView: View {
     @EnvironmentObject private var model: AppModel

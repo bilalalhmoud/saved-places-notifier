@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import SavedPlacesCore
 
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
