@@ -1,0 +1,46 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-0.1912, 51.4996] },
+      "properties": {
+        "date": "2023-04-12T18:20:00Z",
+        "google_maps_url": "http://maps.google.com/?cid=10281119596374313554",
+        "Location": {
+          "Business Name": "Dishoom Kensington",
+          "Address": "4 Derry St, London W8 5SE, UK",
+          "Country Code": "GB"
+        },
+        "Comment": "Best breakfast naan in London"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-0.1420, 51.5010] },
+      "properties": {
+        "date": "2022-11-03T09:00:00Z",
+        "google_maps_url": "https://www.google.com/maps/place/Green+Park/@51.5010,-0.1420,17z",
+        "Location": {
+          "Business Name": "Green Park",
+          "Address": "London, UK",
+          "Country Code": "GB"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [2.2945, 48.8584] },
+      "properties": {
+        "date": "2021-07-19T14:45:00Z",
+        "google_maps_url": "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+        "Location": {
+          "Business Name": "Eiffel Tower",
+          "Address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris, France",
+          "Country Code": "FR"
+        },
+        "Comment": "Sunset visit"
+      }
+    }
+  ]
+}

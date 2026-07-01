@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Xcode / generated project (created by XcodeGen in CI and locally)
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+App/Info.plist
+
+# Swift Package Manager
+.build/
+Core/.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# Build products / archives
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
+SavedPlacesNotifier-simulator.zip
